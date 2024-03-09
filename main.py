@@ -13,15 +13,15 @@ LST_AUTHORS = []
 
 
 async def request_url(session, url: str) -> list:
+    """
+    Асинхронный запрос к URL и возврат ответа в виде текста.
+
+    :param session: Сессия HTTPX для выполнения запроса.
+    :param url: URL для запроса.
+    :return: Ответ сервера в виде текста.
+    """
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/000000000 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'max-age=0',
-        'TE': 'Trailers'
+        # Определение заголовков запроса
     }
     
     response = await session.get(url, headers=headers)
@@ -29,8 +29,13 @@ async def request_url(session, url: str) -> list:
     return response_text
 
 
-
 async def author_(data: str) -> list:
+    """
+    Асинхронное извлечение авторов из HTML-данных и добавление их в глобальный список LST_AUTHORS.
+
+    :param data: HTML-данные для парсинга.
+    :return: None
+    """
     tree = html.fromstring(data)
     authors = tree.xpath('/html/body/div[1]/w56sks5e/w56snpi/fs25oa55ul/yjuxqtv1yz2/yjuxqtv1yz2[1]/fs25oa55ul/div/div[1]/div[2]/div[2]/span[1]/a')
     LST_AUTHORS.append('new author')
@@ -39,6 +44,13 @@ async def author_(data: str) -> list:
 
 
 async def all_url(session, data: str) -> list:
+    """
+    Асинхронное извлечение всех URL из HTML-данных и создание задач для извлечения авторов.
+
+    :param session: Сессия HTTPX для выполнения запросов.
+    :param data: HTML-данные для парсинга.
+    :return: None
+    """
     tree = html.fromstring(data)
     urls = tree.xpath('/html/body/div[1]/w56sks5e/w56snpi/utah4xrpfw/yjuxqtv1yz2[3]/yjuxqtv1yz2/fs25oa55ul/article/div[1]/a')
     task = [author_(await request_url(session, data.get('href'))) for data in urls]
@@ -46,7 +58,11 @@ async def all_url(session, data: str) -> list:
 
 
 async def main():
-    
+    """
+    Главная асинхронная функция, которая запускает процесс сбора авторов.
+
+    :return: None
+    """
     pages = int(input('Введите количество страниц: '))
     async with httpx.AsyncClient() as session:
         session.proxyes = {'http': 'http://178.218.44.79:3128', 'https': 'https://178.218.44.79:3128'}
